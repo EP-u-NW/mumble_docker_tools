@@ -1,0 +1,66 @@
+FROM ubuntu:bionic
+
+# Install dependencies
+RUN apt-get update \
+        && TZ="Europe/Germany" DEBIAN_FRONTENTD="noninteractive" apt-get install -y --no-install-recommends \
+                tzdata
+
+RUN apt-get update \
+        && DEBIAN_FRONTENTD="noninteractive" apt-get install -y --no-install-recommends \
+		tmux \
+		nano \
+		git \
+		apt-transport-https \
+		ca-certificates \
+		gnupg \
+		software-properties-common \
+		wget
+
+RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null \
+	| gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
+
+RUN apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
+
+RUN apt-get update \
+        && DEBIAN_FRONTENTD="noninteractive" apt-get install -y --no-install-recommends \
+	kitware-archive-keyring
+
+RUN rm /etc/apt/trusted.gpg.d/kitware.gpg
+
+RUN apt-get update \
+        && DEBIAN_FRONTENTD="noninteractive" apt-get install -y --no-install-recommends \
+	cmake
+
+RUN apt-get update \
+        && DEBIAN_FRONTENTD="noninteractive" apt-get install -y --no-install-recommends \
+  build-essential \
+  pkg-config \
+  qt5-default \
+  qttools5-dev \
+  qttools5-dev-tools \
+  libqt5svg5-dev \
+  libboost-dev \
+  libssl-dev \
+  libprotobuf-dev \
+  protobuf-compiler \
+  libprotoc-dev \
+  libcap-dev \
+  libxi-dev \
+  libasound2-dev \
+  libogg-dev \
+  libsndfile1-dev \
+  libspeechd-dev \
+  libavahi-compat-libdnssd-dev \
+  libzeroc-ice-dev \
+  g++-multilib \
+  libgrpc++-dev \
+  protobuf-compiler-grpc \
+  gdb \
+  python3
+
+WORKDIR /app
+RUN git clone https://github.com/epnw/mumble -b ssl-improvments-and-more
+WORKDIR /app/mumble/build
+RUN sed -i 's/include(FindPythonInterpreter)/include(FindPythonInterp)/g' /app/mumble/cmake/qt-utils.cmake 
+RUN cmake -Dclient=OFF ..
+RUN make -j4

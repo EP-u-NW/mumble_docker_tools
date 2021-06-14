@@ -1,0 +1,17 @@
+FROM ubuntu:bionic
+RUN apt-get update \
+        && DEBIAN_FRONTENTD="noninteractive" apt-get install -y --no-install-recommends \ 
+		software-properties-common
+RUN add-apt-repository ppa:mumble/release
+RUN apt-get update \
+        && DEBIAN_FRONTENTD="noninteractive" apt-get install -y --no-install-recommends \
+		mumble-server
+WORKDIR /app
+COPY murmur.ini murmur.ini
+EXPOSE 64738/tcp
+EXPOSE 64738/udp
+RUN useradd -p $(openssl passwd -1 murmur) murmur
+RUN chown -R murmur:murmur /app
+USER murmur
+ENV SUPW=YOUR_PASSWORD
+CMD touch murmur.sqlite && (murmurd -ini /app/murmur.ini -supw $SUPW; exit 0) && murmurd -ini /app/murmur.ini

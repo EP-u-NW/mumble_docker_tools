@@ -1,0 +1,25 @@
+# Build the dockerfile in the builder folder first and tag it mumble_builder
+FROM mumble_builder AS builder
+
+FROM ubuntu:bionic
+RUN apt-get update \
+        && DEBIAN_FRONTENTD="noninteractive" apt-get install -y --no-install-recommends \
+		libqt5sql5 \
+		libcap2 \
+		libavahi-compat-libdnssd-dev \
+		libqt5dbus5 \
+		libzeroc-ice3.7 \
+		libprotobuf10 \
+		libqt5network5 \
+		libqt5xml5 \
+		libqt5sql5-sqlite \
+		openssl
+WORKDIR /app
+COPY --from=builder /app/mumble/build/mumble-server .
+EXPOSE 64738/tcp
+EXPOSE 64738/udp
+RUN useradd -p $(openssl passwd -1 murmur) murmur
+RUN chown -R murmur:murmur /app
+USER murmur
+ENV SUPW=YOUR_PASSWORD
+CMD touch murmur.sqlite && (murmurd -ini /app/murmur.ini -supw $SUPW; exit 0) && murmurd -ini /app/murmur.ini
