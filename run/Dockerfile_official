@@ -7,11 +7,11 @@ RUN apt-get update \
         && DEBIAN_FRONTENTD="noninteractive" apt-get install -y --no-install-recommends \
 		mumble-server
 WORKDIR /app
-COPY murmur.ini murmur.ini
+COPY mumble-server.ini mumble-server.ini
 EXPOSE 64738/tcp
 EXPOSE 64738/udp
-RUN useradd -p $(openssl passwd -1 murmur) murmur
-RUN chown -R murmur:murmur /app
-USER murmur
+RUN useradd -p $(openssl passwd -1 mumble-server) mumble-server
+RUN chown -R mumble-server:mumble-server /app
+USER mumble-server
 ENV SUPW=YOUR_PASSWORD
-CMD touch murmur.sqlite && (murmurd -ini /app/murmur.ini -supw $SUPW; exit 0) && murmurd -ini /app/murmur.ini
+CMD touch mumble-server.sqlite && (mumble-server -fg -ini /app/mumble-server.ini -supw $SUPW; exit 0) && mumble-server -fg -ini /app/mumble-server.ini
