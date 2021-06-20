@@ -8,12 +8,12 @@ RUN apt-get update \
 		libcap2 \
 		libavahi-compat-libdnssd-dev \
 		libqt5dbus5 \
-		libzeroc-ice3.7 \
 		libprotobuf10 \
 		libqt5network5 \
 		libqt5xml5 \
 		libqt5sql5-sqlite \
-		openssl
+		openssl \
+		libgrpc++
 WORKDIR /app
 COPY --from=builder /app/mumble/build/mumble-server ./mumble-server
 EXPOSE 64738/tcp
