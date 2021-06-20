@@ -59,7 +59,7 @@ RUN apt-get update \
   python3
 
 WORKDIR /app
-RUN git clone https://github.com/epnw/mumble -b ssl-improvments-and-more
+RUN git clone https://github.com/epnw/mumble -b ssl-improvments-upstream
 WORKDIR /app/mumble/build
 RUN sed -i 's/include(FindPythonInterpreter)/include(FindPythonInterp)/g' /app/mumble/cmake/qt-utils.cmake 
 RUN cmake -Dclient=OFF ..
