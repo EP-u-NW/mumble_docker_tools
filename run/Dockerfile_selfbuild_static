@@ -1,21 +1,14 @@
-# Build the dockerfile in the builder folder first and tag it mumble_builder
-FROM mumble_builder AS builder
+# Build the appropriate dockerfile in the builder folder first and tag it
+FROM mumble_builder_static AS builder
 
 FROM ubuntu:bionic
 RUN apt-get update \
-        && DEBIAN_FRONTENTD="noninteractive" apt-get install -y --no-install-recommends \
-		libqt5sql5 \
+	&& DEBIAN_FRONTENTD="noninteractive" apt-get install -y --no-install-recommends \
+		openssl \
 		libcap2 \
 		libavahi-compat-libdnssd-dev \
-		libqt5dbus5 \
-		libprotobuf10 \
-		libqt5network5 \
-		libqt5xml5 \
-		libqt5sql5-sqlite \
-		libzeroc-ice3.7 \
-		libgrpc++1 \
-		openssl
-
+		libodbc1 \
+		libsybdb5
 WORKDIR /app
 COPY --from=builder /app/mumble/build/mumble-server ./mumble-server
 EXPOSE 64738/tcp

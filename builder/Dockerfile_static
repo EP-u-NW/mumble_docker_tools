@@ -1,0 +1,86 @@
+FROM ubuntu:bionic
+
+# Install dependencies
+RUN apt-get update \
+        && TZ="Europe/Germany" DEBIAN_FRONTENTD="noninteractive" apt-get install -y --no-install-recommends \
+                tzdata
+
+RUN apt-get update \
+        && DEBIAN_FRONTENTD="noninteractive" apt-get install -y --no-install-recommends \
+		tmux \
+		nano \
+		git \
+		apt-transport-https \
+		ca-certificates \
+		gnupg \
+		software-properties-common \
+		wget
+
+RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null \
+	| gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
+
+RUN apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
+
+RUN apt-get update \
+        && DEBIAN_FRONTENTD="noninteractive" apt-get install -y --no-install-recommends \
+	kitware-archive-keyring
+
+RUN rm /etc/apt/trusted.gpg.d/kitware.gpg
+
+RUN apt-get update \
+        && DEBIAN_FRONTENTD="noninteractive" apt-get install -y --no-install-recommends \
+	cmake
+
+RUN apt-get update \
+        && DEBIAN_FRONTENTD="noninteractive" apt-get install -y --no-install-recommends \
+  build-essential \
+  python3 \
+  python \
+  curl \
+  libcurl4 \
+  unzip \
+  zip \
+  tar \
+  gperf \
+  libx11-dev \
+  libxi-dev \
+  libxext-dev \
+  libgl1-mesa-dev \
+  libglu1-mesa-dev \
+  pkg-config \
+  autoconf \
+  autopoint \
+  libtool \
+  libxcb-xinerama0-dev \
+  mesa-common-dev \
+  libxrandr-dev \
+  libxxf86vm-dev \
+  libbluetooth-dev \
+  libx11-xcb-dev \
+  libavahi-compat-libdnssd-dev libcap2-dev \
+  '^libxcb.*-dev' # this was under build-dep, also libxkbcommon-x11-de too
+  
+RUN cp /etc/apt/sources.list /etc/apt/sources.list~ \
+	&& sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list \
+	&& apt-get update
+RUN apt-get update && DEBIAN_FRONTENTD="noninteractive" apt-get build-dep -y --no-install-recommends \
+    qt5-default libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev  \
+	grpc \
+    poco \
+    libvorbis \
+    libogg \
+    libsndfile \
+    zlib \
+    zeroc-ice
+
+WORKDIR /app
+RUN git clone https://github.com/epnw/mumble -b ssl-improvments-upstream
+RUN sed -i 's/QSslError::SslError::SslError::OcspMalformedResponse/QSslError::SslError::OcspMalformedResponse/g' /app/mumble/src/murmur/Meta.cpp
+RUN sed -i 's/CaCertificate(qlMcts)/CaCertificates(qlMcts)/g' /app/mumble/src/murmur/Server.cpp
+RUN sed -i 's/QString::SplitBehavior/Qt/g' /app/mumble/src/murmur/Server.cpp
+WORKDIR /app/mumble
+RUN git submodule update --init
+RUN ./scripts/vcpkg/get_mumble_dependencies.sh
+WORKDIR /app/mumble/build
+RUN cmake "-DVCPKG_TARGET_TRIPLET=x64-linux" "-Dstatic=ON" "-DCMAKE_TOOLCHAIN_FILE=/root/vcpkg/scripts/buildsystems/vcpkg.cmake" "-Dice=OFF" "-DCMAKE_BUILD_TYPE=Release" cmake "-Dclient=OFF" "-Dgrpc=ON" ..
+RUN make -j4
