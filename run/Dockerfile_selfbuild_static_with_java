@@ -1,4 +1,4 @@
-# Build Dockerfile_selfebuild and tag it mumble_selfbuild
+# Build Dockerfile_selfebuild_static and tag it mumble_selfbuild_static
 FROM mumble_selfbuild_static
 
 USER root

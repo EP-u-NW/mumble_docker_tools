@@ -74,7 +74,7 @@ RUN apt-get update && DEBIAN_FRONTENTD="noninteractive" apt-get build-dep -y --n
     zeroc-ice
 
 WORKDIR /app
-RUN git clone https://github.com/epnw/mumble -b ssl-improvments-upstream
+RUN git clone https://github.com/ep-u-nw/mumble -b ssl-improvments-upstream
 RUN sed -i 's/QSslError::SslError::SslError::OcspMalformedResponse/QSslError::SslError::OcspMalformedResponse/g' /app/mumble/src/murmur/Meta.cpp
 RUN sed -i 's/CaCertificate(qlMcts)/CaCertificates(qlMcts)/g' /app/mumble/src/murmur/Server.cpp
 RUN sed -i 's/QString::SplitBehavior/Qt/g' /app/mumble/src/murmur/Server.cpp
